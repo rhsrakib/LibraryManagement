@@ -1,0 +1,96 @@
+﻿@page "/Members"
+@inject HttpClient http
+@inject NavigationManager manager
+@inject IJSRuntime jsRuntime
+<h1>Member List</h1>
+<div>
+    <a class="btn btn-success" href="Members/Create">Create New Member</a>
+</div>
+@if (members == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Member Id</th>
+                <th>Member Name</th>
+                <th>Phone No</th>
+                <th>Email</th>
+                <th>Join Date</th>
+                <th>Is Paid</th>
+                <th>Address</th>
+                <th>Image</th>
+                <th>Book Details</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if(members != null)
+            {
+                @foreach (var member in members)
+                {
+                    <tr>
+                        <td>@member.MemberId</td>
+                        <td>@member.MemberName.ToUpper()</td>
+                        <td>@member.PhoneNo</td>
+                        <td>@member.Email</td>
+                        <td>@member.JoinDate.ToShortDateString()</td>
+                        <td>@member.IsPaid</td>
+                        <td>@member.Address</td>
+                        <td><img height="50" width="50" src="@member.ImageUrl" /></td>
+                        <td>
+                            @foreach (var book in member.Books)
+                            {
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Book Name</th>
+                                            <th>Author Name</th>
+                                            <th>Publish Date</th>
+                                            <th>Price</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>@book.BookName</td>
+                                            <td>@book.AuthorName</td>
+                                            <td>@book.PublishDate</td>
+                                            <td>@book.Price</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            }
+                        </td>
+                        <td>
+                            <a class="btn btn-secondary" href="members/edit/@member.MemberId">Edit</a>
+                            <button class="btn btn-danger" @onclick="async ()=> await Delete(member)">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+}
+@code {
+    List<Member> members { get; set; }
+    protected async override Task OnInitializedAsync()
+    {
+        members = await http.GetFromJsonAsync<List<Member>>("api/Members");
+    }
+    protected async Task Delete(Member member)
+    {
+        var response = await http.DeleteAsync($"api/Members/{member.MemberId}");
+        if (response.IsSuccessStatusCode)
+        {
+            members.Remove(member);
+        }
+        else
+        {
+        }
+    }
+}

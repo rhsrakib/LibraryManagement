@@ -1,0 +1,117 @@
+﻿<EditForm Model="@member" OnValidSubmit="OnValidSubmit">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label>Member Name</label>
+                    <InputText class="form-control" @bind-Value="@member.MemberName" />
+                </div>
+                <div class="form-group">
+                    <label>Phone No</label>
+                    <InputText class="form-control" @bind-Value="@member.PhoneNo" />
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <InputText class="form-control" @bind-Value="@member.Email" />
+                </div>
+                <div class="form-group">
+                    <label>Join Date</label>
+                    <InputDate class="form-control" @bind-Value="@member.JoinDate" />
+                </div>
+                <div class="form-check">
+                    <label>Is Paid</label>
+                    <InputCheckbox @bind-Value="@member.IsPaid" />
+                </div>
+                <div class="form-group">
+                    <label>Address</label>
+                    <InputText class="form-control" @bind-Value="@member.Address" />
+                </div>
+                <div class="form-control-file my-2">
+                    @if (string.IsNullOrEmpty(member.ImageUrl))
+                    {
+                        <img height="50" width="50" src="/images/noimage.png" />
+                    }
+                    else
+                    {
+                        <img height="50" width="50" src="@member.ImageUrl" />
+                    }
+                    <InputFile class="form-control" OnChange="OnFileChange" accept="image/*" />
+                </div>
+                <div class="btn btn-group">
+                    <button class="btn-success" type="submit">
+                        @if (member.MemberId == 0)
+
+                        {
+                            <span>Create</span>
+                        }
+                        else
+                        {
+                            <span>Update</span>
+                        }
+                    </button>
+
+                    <button class="btn btn-secondary" @onclick="Clear">Clear</button>
+
+                </div>
+                <div>
+                    <a class="btn btn-info" href="Members">Back to List</a>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div>
+                    <button type="button" class="btn btn-success" @onclick="@(()=> member.Books.Add(new Book()))">
+                        Add Book
+                    </button>
+                </div>
+                <table class="table table-bordered table-dark">
+                    <thead>
+                        <tr>
+                            <th>Book Name</th>
+                            <th>Author Name</th>
+                            <th>Publish Date</th>
+                            <th>Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        @for (int i = 0; i < member.Books.Count; i++)
+                        {
+                            var index = i;
+                            var add = member.Books[i];
+                            <tr>
+                                <td><InputText class="form-control" @bind-Value="add.BookName" /></td>
+                                <td><InputText class="form-control" @bind-Value="add.AuthorName" /></td>
+                                <td><InputDate class="form-control" @bind-Value="add.PublishDate" /></td>
+                                <td><InputNumber class="form-control" @bind-Value="add.Price" /></td>
+                                <td>
+                                    <button type="button" class="btn btn-danger" @onclick="@(() => member.Books.RemoveAt(index))">
+                                        X
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter]
+    public Member member { get; set; } = new();
+    [Parameter]
+    public EventCallback OnValidSubmit { get; set; } = new();
+    async Task OnFileChange(InputFileChangeEventArgs eventArgs)
+    {
+        var formate = eventArgs.File.ContentType;
+        var resizedImage = await eventArgs.File.RequestImageFileAsync(formate, 1060, 1060);
+        var buffer = new byte[resizedImage.Size];
+        await resizedImage.OpenReadStream().ReadAsync(buffer);
+        member.ImageUrl = $"data:{formate};base64,{Convert.ToBase64String(buffer)}";
+    }
+    private void Clear()
+    {
+        member = new Member();
+    }
+}

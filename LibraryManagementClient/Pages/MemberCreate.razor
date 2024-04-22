@@ -1,0 +1,33 @@
+﻿@page "/Members/Create"
+@inject HttpClient http
+@inject NavigationManager manager
+<h3>Create New Member</h3>
+
+@if (member == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div class="row">
+        <MembersForm member="member" OnValidSubmit="OnValidSubmit"></MembersForm>
+    </div>
+}
+
+@code {
+    Member member = new Member();
+    private async Task OnValidSubmit()
+    {
+        var response = await http.PostAsJsonAsync("api/Members", member);
+        var body = await response.Content.ReadAsStringAsync();
+        if (response.IsSuccessStatusCode)
+        {
+            Console.WriteLine($"The new student id is {body}");
+            manager.NavigateTo("Members");
+        }
+        else
+        {
+            Console.WriteLine(body);
+        }
+    }
+}

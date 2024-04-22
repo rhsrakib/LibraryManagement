@@ -1,0 +1,48 @@
+﻿@page "/Members/edit/{MemberId:int}"
+@using System.Text.Json
+@inject HttpClient http
+@inject NavigationManager manager
+
+<h1>Edit Member</h1>
+@if(member == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div>
+        <MembersForm member="member" OnValidSubmit="OnValidSubmit"></MembersForm>
+    </div>
+}
+@code {
+    [Parameter]
+    public int MemberId { get; set; }
+    private Member member;
+    private async Task OnValidSubmit()
+    {
+        var response = await http.PutAsJsonAsync("api/Members", member);
+        if (response.IsSuccessStatusCode)
+        {
+            manager.NavigateTo("members");
+        }
+        else
+        {
+            Console.WriteLine(await response.Content.ReadAsStringAsync());
+        }
+    }
+    protected override async Task OnParametersSetAsync()
+    {
+        var response = await http.GetAsync($"api/Members/{MemberId}");
+        if (response.IsSuccessStatusCode)
+        {
+            member = JsonSerializer.Deserialize<Member>(await response.Content.ReadAsStringAsync(), new JsonSerializerOptions()
+            {
+                PropertyNameCaseInsensitive = true
+            });
+        }
+        else
+        {
+            manager.NavigateTo("Members");
+        }
+    }
+}
